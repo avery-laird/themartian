@@ -34,6 +34,8 @@ class Orbit:
              return x - (e * math.sin(x))
          while f(i) < m:
              i += 1
+         while f(i) > m:
+             i -= 0.01 
          return i
 
     def find_true_anomaly(self, E, i=0):
@@ -41,21 +43,23 @@ class Orbit:
             return (1-self.eccentricity)*(math.tan(theta/2))**2
         r = (1 + self.eccentricity)*(math.tan(E/2))**2
         while l(i) < r:
-            i += 0.0001
-        return i
+            i += 0.01
+        while l(i) > r:
+            i -= 0.0001
+        return i 
          
-    def calc_position(self, seconds):
+    def calc_position(self, days):
         ## calculate mean anomaly
         #  n = mean motion
         n = (2 * math.pi)/self.period
-        print "n = " + str(n)
-        mean_anomaly = n * seconds
-        print "mean anomaly = " + str(mean_anomaly)
+#        print "n = " + str(n)
+        mean_anomaly = n * days * 24 * 60 * 60
+#        print "mean anomaly = " + str(mean_anomaly)
         ecc_anomaly = self.find_e_anomaly(mean_anomaly, self.eccentricity)
-        print "eccentric anomaly = " + str(ecc_anomaly)
+#        print "eccentric anomaly = " + str(ecc_anomaly)
         true_anomaly = self.find_true_anomaly(ecc_anomaly)
-        print "true anomaly = " + str(true_anomaly)
-        return ([self.semi_major_axis * (1 - (self.eccentricity * math.cos(ecc_anomaly))), true_anomaly])
+        self.radius = self.semi_major_axis * (1 - (self.eccentricity * math.cos(ecc_anomaly)))
+        self.true_anomaly = true_anomaly
 
 
 def main():
@@ -63,8 +67,15 @@ def main():
 #    print earth.orbit.radius_from_angle(math.pi)
 #    print earth.orbit.find_e_anomaly(271433.6, 0.016710219)
 #    print earth.orbit.find_true_anomaly(earth.orbit.find_e_anomaly(271433.6, 0.016710219))
-
-#    plt.show()
+    theta = []
+    radius = []
+    for time in [200]:
+        earth.orbit.calc_position(time)
+        theta.append(earth.orbit.true_anomaly)
+        radius.append(earth.orbit.radius)
+    print theta
+    plt.polar(theta, radius, 'ro')
+    plt.show()
 
 
 if __name__ == "__main__":
