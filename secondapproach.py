@@ -1,6 +1,11 @@
-import sys
+# import sys
 import math
 from matplotlib import pyplot as plt
+
+# An interesting point concerning the hyperbolic case has been made by Chris Marriott, 
+# author of SkyMap . He noted that the two "guesses" for an initial anomaly, 
+# E1=cube_root(6*M) and E2=asinh(M/ecc), define bounds for the actual value of E; you 
+# can be certain that E2 < E < E1. This makes implementing a secant or binary-search method much easier.
 
 class Body:
     def __init__(self, position, velocity, mass, orbit = None):
@@ -29,24 +34,32 @@ class Orbit:
         return math.acos(((self.semi_latus_r / radius) - 1) / self.eccentricity)
 
     def find_e_anomaly(self, m, e, i=0):
-         # assume non-negative values less than 300 million
-         def f(x):
-             return x - (e * math.sin(x))
-         while f(i) < m:
+         # assume non-negative values 
+         # TODO: change back to simple version
+         def l(x):
+             return m - i
+         def r(x):
+             return -1 * e * math.sin(i)
+         while l(i) > r(i):
              i += 1
-         while f(i) > m:
-             i -= 0.01 
+         while l(i) < r(i):
+             i -= 0.0001
          return i
 
-    def find_true_anomaly(self, E, i=0):
-        def l(theta):
-            return (1-self.eccentricity)*(math.tan(theta/2))**2
+    def find_true_anomaly(self, E, rotation = 1, i=0):
+        # TODO: figure out when to use the solutions
+        def l(i):
+            return (1-self.eccentricity)*(math.tan(i/2))**2
         r = (1 + self.eccentricity)*(math.tan(E/2))**2
         while l(i) < r:
             i += 0.01
         while l(i) > r:
             i -= 0.0001
-        return i 
+        if rotation == 1:
+            return i
+        else:
+            print "here"
+            return self.find_true_anomaly(E, i=i)
          
     def calc_position(self, days):
         ## calculate mean anomaly
@@ -57,7 +70,9 @@ class Orbit:
 #        print "mean anomaly = " + str(mean_anomaly)
         ecc_anomaly = self.find_e_anomaly(mean_anomaly, self.eccentricity)
 #        print "eccentric anomaly = " + str(ecc_anomaly)
-        true_anomaly = self.find_true_anomaly(ecc_anomaly)
+        rotations = int((days * 24 * 60 * 60)/self.period)+2
+        true_anomaly = self.find_true_anomaly(ecc_anomaly, rotations)
+        print true_anomaly
         self.radius = self.semi_major_axis * (1 - (self.eccentricity * math.cos(ecc_anomaly)))
         self.true_anomaly = true_anomaly
 
@@ -69,11 +84,10 @@ def main():
 #    print earth.orbit.find_true_anomaly(earth.orbit.find_e_anomaly(271433.6, 0.016710219))
     theta = []
     radius = []
-    for time in [200]:
+    for time in [100]:
         earth.orbit.calc_position(time)
         theta.append(earth.orbit.true_anomaly)
         radius.append(earth.orbit.radius)
-    print theta
     plt.polar(theta, radius, 'ro')
     plt.show()
 
