@@ -1,0 +1,5 @@
+import math, sys
+
+def solve(f1, f2, i=0):
+    while f1(i) > f2(i):
+    

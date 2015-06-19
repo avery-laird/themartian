@@ -1,6 +1,7 @@
 # import sys
 import math
 from matplotlib import pyplot as plt
+import matplotlib.animation as animation
 
 # An interesting point concerning the hyperbolic case has been made by Chris Marriott, 
 # author of SkyMap . He noted that the two "guesses" for an initial anomaly, 
@@ -24,7 +25,7 @@ class Orbit:
         self.eccentricity = eccentricity
 	self.semi_major_axis = semi_major_axis
         self.semi_latus_r = semi_lr
-        self.period = period*24*60*60
+        self.period = period
         self.theta = theta
 
     def radius_from_angle(self, theta):
@@ -55,11 +56,9 @@ class Orbit:
             i += 0.01
         while l(i) > r:
             i -= 0.0001
-        if rotation == 1:
-            return i
-        else:
-            print "here"
-            return self.find_true_anomaly(E, i=i)
+        #if rotation == 2:
+        #    return 2*(math.pi - i) + i
+        return i
          
     def calc_position(self, days):
         ## calculate mean anomaly
@@ -70,7 +69,8 @@ class Orbit:
 #        print "mean anomaly = " + str(mean_anomaly)
         ecc_anomaly = self.find_e_anomaly(mean_anomaly, self.eccentricity)
 #        print "eccentric anomaly = " + str(ecc_anomaly)
-        rotations = int((days * 24 * 60 * 60)/self.period)+2
+        rotations = int(float(self.period)/days)+1
+
         true_anomaly = self.find_true_anomaly(ecc_anomaly, rotations)
         print true_anomaly
         self.radius = self.semi_major_axis * (1 - (self.eccentricity * math.cos(ecc_anomaly)))
@@ -84,13 +84,13 @@ def main():
 #    print earth.orbit.find_true_anomaly(earth.orbit.find_e_anomaly(271433.6, 0.016710219))
     theta = []
     radius = []
-    for time in [100]:
+    for time in [3]:
         earth.orbit.calc_position(time)
         theta.append(earth.orbit.true_anomaly)
         radius.append(earth.orbit.radius)
-    plt.polar(theta, radius, 'ro')
+    plt.polar(theta, radius, 'o')
     plt.show()
-
+    
 
 if __name__ == "__main__":
     main()
